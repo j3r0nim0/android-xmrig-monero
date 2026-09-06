@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Anvil</string>
+    <string name="notif_channel_name">Mining</string>
+    <string name="notif_channel_desc">Shown while XMRig is running</string>
+    <string name="notif_title">Anvil</string>
+    <string name="footer_info">Pool: gulf.moneroocean.stream:20032 TLS · 0% donate · GPL-3.0\nManage payouts to your wallet at moneroocean.stream. This app does not take a cut.\nXMRig © XMRig / MoneroOcean, bundled unmodified.</string>
+</resources>
