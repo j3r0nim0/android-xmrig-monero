@@ -20,3 +20,12 @@ captures/
 
 # Local goose configuration
 .goosehints
+
+# Logs
+*.log
+
+# OS
+Thumbs.db
+
+# Gradle
+out/
