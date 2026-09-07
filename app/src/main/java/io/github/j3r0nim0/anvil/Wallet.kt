@@ -1,55 +1,59 @@
 package io.github.j3r0nim0.anvil
 
 import org.bouncycastle.jcajce.provider.digest.Keccak
+import java.math.BigInteger
 import java.security.MessageDigest
 
 /**
  * Monero wallet address validation.
  *
- * A Monero address is a Base58-encoded binary blob:
- *   [network_byte(1)] [spend_key(32)] [view_key(32)] [+ payment_id(8)] [checksum(4)]
+ * Monero addresses use Cryptonote **block-based Base58** (NOT plain big-endian):
+ *   - binary blob: [varint network_tag][spend_key 32B][view_key 32B][payment_id 8B?][keccak256 checksum 4B]
+ *   - standard / subaddress: 69 bytes  →  95 Base58 chars  (8×11 + 7)
+ *   - integrated:            77 bytes  →  106 Base58 chars (9×11 + 7)
+ *   - data split into 8-byte blocks, each encoded to 11 chars; last block 1..7 bytes → 2,3,5,6,7,9,10 chars
  *
- * Standard / subaddress: 69 bytes  →  95 Base58 chars  (prefix 4 or 8)
- * Integrated:            77 bytes  →  106 Base58 chars (prefix 4 only)
- *
- * Checksum = first 4 bytes of Keccak-256(data_bytes).
+ * Checksum = first 4 bytes of Keccak-256(tag + keys [+ payment_id]).
+ * Network tag is a little-endian base-128 varint: 18 mainnet, 19 integrated, 42 subaddress.
  */
 object Wallet {
 
-    private const val NETWORK_MAINNET: Byte = 18     // 0x12
-    private const val NETWORK_INTEGRATED: Byte = 19  // 0x13
-    private const val NETWORK_SUBADDRESS: Byte = 42  // 0x2A
+    private const val NETWORK_MAINNET = 18L     // 0x12
+    private const val NETWORK_INTEGRATED = 19L  // 0x13
+    private const val NETWORK_SUBADDRESS = 42L  // 0x2A
 
     private const val B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-    private val B58_REV: ByteArray = run {
-        val r = ByteArray(128) { -1 }
-        for ((i, c) in B58.withIndex()) r[c.code] = i.toByte()
+
+    /** encoded char count per data block size (index 1..8, index 0 unused) */
+    private val ENC_SIZES = intArrayOf(0, 2, 3, 5, 6, 7, 9, 10, 11)
+
+    /** decoded data block size per encoded char count (0..11, -1 = invalid) */
+    private val DEC_SIZES: IntArray = run {
+        val r = IntArray(12) { -1 }
+        for (i in 1..8) r[ENC_SIZES[i]] = i
         r
     }
 
-    /** Regex-prefilter: length + first character. */
-    private val pattern = Regex("^(?:[48][$B58]{94}|4[$B58]{105})$")
-    private val junk = Regex("[\\s\\u200B\\u200C\\u200D\\uFEFF\\u00AD]+")
+    private const val FULL_BLOCK = 8
+    private const val FULL_ENC = 11
+    private const val CHECKSUM_SIZE = 4
 
-    // Lazy Keccak-256 instance (thread-safe after init)
+    private val junk = Regex("[\\s\\u200B\\u200C\\u200D\\uFEFF\\u00AD]+")
     private val keccak256: MessageDigest by lazy { Keccak.Digest256() }
 
+    /** Quick shape pre-filter: 95 chars starting 4/8, or 106 chars starting 4. */
+    private val pattern = Regex("^(?:[48][$B58]{94}|4[$B58]{105})$")
+
     /**
-     * Full validation: regex shape + Base58 decode + Keccak-256 checksum.
+     * Full validation: shape pre-filter + block Base58 decode + Keccak-256 checksum
+     * + mainnet network tag check.
      */
     fun isValid(address: String): Boolean {
         val clean = parse(address)
-
-        // Quick shape check first
         if (!pattern.matches(clean)) return false
-
         return try {
-            val raw = b58decode(clean)
-            when (raw.size) {
-                69 -> checkSum(raw, 65)   // standard / subaddress
-                77 -> checkSum(raw, 73)   // integrated
-                else -> false             // unexpected length even after decode
-            }
+            val raw = b58decode(clean) ?: return false
+            verifyChecksum(raw) && verifyNetworkTag(raw)
         } catch (_: Exception) {
             false
         }
@@ -69,55 +73,79 @@ object Wallet {
         return junk.replace(s, "")
     }
 
-    // ── Base58 ──────────────────────────────────────────────────────────────
+    // ── Cryptonote block Base58 ─────────────────────────────────────────────
 
-    /** Decode a Base58 string to a byte array. Returns empty array on invalid input. */
-    private fun b58decode(input: String): ByteArray {
-        // Count leading 1s (which encode to 0x00)
-        var leading = 0
-        for (c in input) {
-            if (c != '1') break
-            leading++
+    /** Decodes block-Base58 to bytes. Returns null on any structural error. */
+    private fun b58decode(enc: String): ByteArray? {
+        if (enc.isEmpty()) return ByteArray(0)
+        val fullCount = enc.length / FULL_ENC
+        val lastSize = enc.length % FULL_ENC
+        val lastDecoded = DEC_SIZES[lastSize]
+        if (lastDecoded < 0) return null
+        val out = ByteArray(fullCount * FULL_BLOCK + lastDecoded)
+        for (i in 0 until fullCount) {
+            val block = decodeBlock(
+                enc.substring(i * FULL_ENC, (i + 1) * FULL_ENC), FULL_BLOCK,
+            ) ?: return null
+            System.arraycopy(block, 0, out, i * FULL_BLOCK, FULL_BLOCK)
         }
-
-        // Decode big-endian base-256 value
-        var num = java.math.BigInteger.ZERO
-        val base = java.math.BigInteger.valueOf(58)
-        for (c in input) {
-            val idx = if (c.code < 128) B58_REV[c.code].toInt() else -1
-            if (idx < 0) return ByteArray(0) // invalid character
-            num = num.multiply(base).add(java.math.BigInteger.valueOf(idx.toLong()))
+        if (lastSize > 0) {
+            val block = decodeBlock(enc.substring(fullCount * FULL_ENC), lastDecoded) ?: return null
+            System.arraycopy(block, 0, out, fullCount * FULL_BLOCK, lastDecoded)
         }
-
-        val encoded = num.toByteArray()
-        // BigInt may include a leading 0x00 sign byte — strip it
-        val raw = if (encoded.size > 1 && encoded[0].toInt() == 0) {
-            encoded.copyOfRange(1, encoded.size)
-        } else {
-            encoded
-        }
-
-        // Prepend leading zero bytes
-        return ByteArray(leading) { 0 } + raw
+        return out
     }
 
-    // ── Checksum ────────────────────────────────────────────────────────────
-
-    /**
-     * Verifies that the last 4 bytes of [full] equal the first 4 bytes
-     * of Keccak-256([full][0..dataLen)).
-     */
-    private fun checkSum(full: ByteArray, dataLen: Int): Boolean {
-        val data = full.copyOfRange(0, dataLen)
-        val expectedChecksum = full.copyOfRange(dataLen, full.size)
-        val hash = keccak256.digest(data)
-        return hash[0] == expectedChecksum[0] &&
-                hash[1] == expectedChecksum[1] &&
-                hash[2] == expectedChecksum[2] &&
-                hash[3] == expectedChecksum[3]
+    /** Decodes one Base58 block into [resSize] big-endian bytes. Null on invalid symbol / overflow. */
+    private fun decodeBlock(block: String, resSize: Int): ByteArray? {
+        var num = BigInteger.ZERO
+        for (c in block) {
+            val digit = B58.indexOf(c)
+            if (digit < 0) return null
+            num = num.multiply(BigInteger.valueOf(58)).add(BigInteger.valueOf(digit.toLong()))
+        }
+        // Must fit in uint64
+        if (num.bitLength() > 64) return null
+        // Non-final blocks are always 8 bytes; the last block must fit in its byte count
+        if (resSize < FULL_BLOCK && BigInteger.ONE.shiftLeft(8 * resSize) <= num) return null
+        val bytes = num.toByteArray()
+        val start = if (bytes.size > 1 && bytes[0].toInt() == 0) 1 else 0
+        val len = bytes.size - start
+        if (len > resSize) return null
+        val out = ByteArray(resSize)
+        System.arraycopy(bytes, start, out, resSize - len, len)
+        return out
     }
 
-    /** Visible for testing: compute the checksum for a given data prefix. */
-    internal fun computeChecksum(data: ByteArray): ByteArray =
-        keccak256.digest(data).copyOfRange(0, 4)
+    // ── Checksum + network tag ──────────────────────────────────────────────
+
+    /** Verifies last 4 bytes == first 4 bytes of Keccak-256(rest). */
+    private fun verifyChecksum(raw: ByteArray): Boolean {
+        if (raw.size <= CHECKSUM_SIZE) return false
+        val dataLen = raw.size - CHECKSUM_SIZE
+        val hash = keccak256.digest(raw.copyOfRange(0, dataLen))
+        for (i in 0 until CHECKSUM_SIZE) {
+            if (hash[i] != raw[dataLen + i]) return false
+        }
+        return true
+    }
+
+    /** Decodes the leading varint and checks it is a mainnet tag. */
+    private fun verifyNetworkTag(raw: ByteArray): Boolean {
+        val dataLen = raw.size - CHECKSUM_SIZE
+        var value = 0L
+        var shift = 0
+        var i = 0
+        while (i < dataLen && shift < 64) {
+            val b = raw[i].toInt() and 0xFF
+            value = value or ((b.toLong() and 0x7F) shl shift)
+            i++
+            if (b and 0x80 == 0) break
+            shift += 7
+        }
+        return when (value) {
+            NETWORK_MAINNET, NETWORK_INTEGRATED, NETWORK_SUBADDRESS -> true
+            else -> false
+        }
+    }
 }
