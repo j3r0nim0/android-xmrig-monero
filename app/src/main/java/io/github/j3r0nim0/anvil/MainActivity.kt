@@ -207,7 +207,7 @@ class MainActivity : AppCompatActivity() {
             MiningState.pool.isNotEmpty() ->
                 "${MiningState.pool}  ·  ${MiningState.accepted} accepted  ·  ${MiningState.rejected} rejected  ·  ${formatUptime(MiningState.uptimeSecs)}"
             MiningState.lastLogLine.contains("DNS error", ignoreCase = true) ->
-                "Can't reach pool (DNS). Check VPN / network."
+                "Can't reach pool (DNS). Check network / VPN settings."
             else -> "Starting… first run may take a few minutes"
         }
         log.text = MiningState.lastLogLine

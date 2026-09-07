@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Anvil</string>
+    <string name="app_title_detail">Anvil — XMRig on Android</string>
     <string name="notif_channel_name">Mining</string>
     <string name="notif_channel_desc">Shown while XMRig is running</string>
     <string name="notif_title">Anvil</string>

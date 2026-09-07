@@ -1,21 +1,21 @@
 # Anvil
 
-ARM64 Android miner for [XMRig](https://github.com/xmrig/xmrig) (MoneroOcean fork).  
+Android app that runs [XMRig](https://github.com/xmrig/xmrig) (MoneroOcean fork) on ARM64.  
 Paste a wallet, start mining, stop.
-
-GitHub repo stays **android-xmrig-monero** for search. The app on the phone is **Anvil**.
 
 ## Status
 
-v0.1 — works on ARM64 Android 8+. Experimental. **Use at your own risk.**  
+v0.1 — ARM64 Android 8+. Experimental. **Use at your own risk.**  
 RandomX will heat the phone and can shorten battery life. There is **no warranty**.
 
 - Package: `io.github.j3r0nim0.anvil`
 - Default pool: `gulf.moneroocean.stream:20032` (TLS)
-- Donate: **0%** (direct to MoneroOcean)
-- Payouts go to **your** wallet. This app takes no cut.
+- Donate: **0%** while on MoneroOcean
+- Payouts go to **your** wallet at [moneroocean.stream](https://moneroocean.stream). This app takes no cut.
 - Charging-only is **on** by default. CPU pause default **65°C**. Battery pause **40°C**.
 - Threads default **50%**.
+- First start **benchmarks** several algorithms (a few minutes, phone gets warm). Later starts at the same thread % skip it.
+- **Pause** keeps XMRig running (no re-benchmark). **Stop** (long-press) kills the process; algo-perf stays on disk.
 
 ## Requirements
 
@@ -25,7 +25,9 @@ RandomX will heat the phone and can shorten battery life. There is **no warranty
 
 ## Install
 
-GitHub Releases (when published) → download the APK → install. You do **not** compile.
+[GitHub Releases](https://github.com/j3r0nim0/android-xmrig-monero/releases) → download the APK → install. You do **not** compile.
+
+For auto-updates, add this repo in [Obtainium](https://github.com/ImranR98/Obtainium).
 
 Build it yourself:
 
@@ -38,8 +40,8 @@ Build it yourself:
 
 ## What this is not
 
-- Not an XMRig fork. We bundle an unmodified MoneroOcean build.
-- Not Termux. Termux users should keep using Termux.
+- Not another XMRig fork. Bundles an unmodified MoneroOcean XMRig binary. 0% donate while mining MoneroOcean (the fork’s own waiver). Config does not add a second cut.
+- Not a Termux build script. If you already run XMRig in Termux, keep doing that.
 - Not P2Pool. Phones at a few hundred H/s need a vardiff pool.
 - Not the 2018 CryptoNight APKs (`upost/MoneroMiner`, etc.). Those cannot mine Monero.
 
