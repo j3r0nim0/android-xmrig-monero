@@ -7,9 +7,8 @@ with the **Android NDK**. This recipe is **proven** — built and verified on-de
 loads, real **TLS 1.3** handshake to MoneroOcean, `DONATE 0%` direct).
 
 > **TLS:** the *original* binary was built `-DWITH_TLS=OFF` (no OpenSSL — `"tls":true` rejected, direct
-> mining cleartext). The recipe below builds it **`-DWITH_TLS=ON`** so direct mining gets TLS on the wire,
-> which is what unblocks dropping the on-device proxy. TLS-on
-> adds OpenSSL static → binary ~**7.5 MB** (vs ~2.4 MB no-TLS).
+> mining cleartext). The recipe below builds it **`-DWITH_TLS=ON`** so direct mining gets TLS on the wire.
+> TLS-on adds OpenSSL static → binary ~**7.5 MB** (vs ~2.4 MB no-TLS).
 
 ## Toolchain & the three gotchas (all hit + fixed)
 - **Android NDK 28.2.13676358** — use its CMake toolchain, *not* Docker/QEMU on the host (a Linux build
@@ -83,10 +82,9 @@ strings assets/binaries/xmrig | grep -iE 'OpenSSL 3'      # → "OpenSSL 3.4.7�
 ```
 
 ## Donate
-You **don't** need to touch this for the drop-proxy plan: mining **direct** to MoneroOcean makes the fork
-waive its donate → **0%** (the 1% only appears *through* a proxy). If
-you ever keep the proxy and want 0% anyway, zero it in source before building: `src/donate.h` →
-`kDefaultDonateLevel = 0` and `kMinimumDonateLevel = 0`.
+Mining **direct** to MoneroOcean makes the fork waive its donate → **0%** (the 1% only appears
+*through* a proxy). If you ever mine through a proxy and want 0% anyway, zero it in source before
+building: `src/donate.h` → `kDefaultDonateLevel = 0` and `kMinimumDonateLevel = 0`.
 
 ## Reproducible build (trust asset)
 
