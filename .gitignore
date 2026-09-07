@@ -18,6 +18,11 @@ captures/
 /app/src/main/jniLibs/**/*.so
 /prebuilt/*.so
 
+# Signing — never commit the keystore or passwords
+*.keystore
+*.jks
+keystore.properties
+
 # Local goose configuration
 .goosehints
 
