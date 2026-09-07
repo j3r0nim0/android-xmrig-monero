@@ -17,3 +17,6 @@ captures/
 #   cp prebuilt/libxmrig.so app/src/main/jniLibs/arm64-v8a/
 /app/src/main/jniLibs/**/*.so
 /prebuilt/*.so
+
+# Local goose configuration
+.goosehints
