@@ -1,7 +1,7 @@
 # Anvil
 
 Android app that runs [XMRig](https://github.com/xmrig/xmrig) (MoneroOcean fork) on ARM64.  
-Paste a wallet, start mining, stop.
+Paste a wallet, start mining.
 
 ## Status
 
