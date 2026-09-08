@@ -49,6 +49,10 @@ Build it yourself:
 # APK: app/build/outputs/apk/debug/app-debug.apk
 ```
 
+## Benchmarks
+
+Real on-device RandomX numbers (Helio G99 ~420 H/s, Snapdragon 865 ~750 H/s, more threads can be slower): [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
+
 ## What this is not
 
 - Not another XMRig fork. Bundles an unmodified MoneroOcean XMRig binary. 0% donate while mining MoneroOcean (the fork’s own waiver). Config does not add a second cut.
