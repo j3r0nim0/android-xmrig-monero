@@ -38,7 +38,9 @@ shasum -a 256 Anvil-0.1.0.apk   # macOS
 sha256sum Anvil-0.1.0.apk      # Linux
 ```
 
-For auto-updates, add this repo in [Obtainium](https://github.com/ImranR98/Obtainium).
+For auto-updates, add this repo in [Obtainium](https://github.com/ImranR98/Obtainium) (or tap the badge on a phone that has it):
+
+[![Get it on Obtainium](docs/badge_obtainium.png)](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22io.github.j3r0nim0.anvil%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fj3r0nim0%2Fandroid-xmrig-monero%22%2C%22author%22%3A%22j3r0nim0%22%2C%22name%22%3A%22Anvil%22%7D)
 
 Build it yourself:
 
