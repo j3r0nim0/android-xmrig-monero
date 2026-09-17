@@ -96,7 +96,7 @@ class XMRigManager(
                             reader.forEachLine { line ->
                                 Log.i(TAG, "xmrig: $line")
                                 appendDebugLog(line)
-                                MiningState.lastLogLine = line
+                                MiningState.appendLog(line)
                                 parseStatsLine(line)
                             }
                         }
@@ -182,13 +182,14 @@ class XMRigManager(
         val configFile = File(context.filesDir, CONFIG_NAME)
         val metaFile = File(context.filesDir, CONFIG_META)
         val poolUser = if (difficulty > 0) "$wallet+$difficulty" else wallet
+        val userJson = jsonString(poolUser)
         val metaKey = "v1:$threadsPercent:$poolUrl:$poolTls"
 
         if (configFile.exists() && metaFile.exists() && metaFile.readText().trim() == metaKey) {
             val existing = configFile.readText()
             val patched = existing.replace(
                 Regex(""""user"\s*:\s*"[^"]*""""),
-                """"user": "$poolUser"""",
+                """"user": $userJson""",
             )
             if (patched != existing) {
                 configFile.writeText(patched)
@@ -205,16 +206,38 @@ class XMRigManager(
         Log.i(TAG, "Thread config: $threadCount / $totalCores cores ($threadsPercent%)")
 
         val config = template
-            .replace("\"__WALLET_ADDRESS__\"", "\"$poolUser\"")
-            .replace("\"__POOL_URL__\"", "\"$poolUrl\"")
+            .replace("\"__WALLET_ADDRESS__\"", userJson)
+            .replace("\"__POOL_URL__\"", jsonString(poolUrl))
             .replace("\"__POOL_TLS__\"", "$poolTls")
-            .replace("\"__RIG_ID__\"", "\"$workerName\"")
+            .replace("\"__RIG_ID__\"", jsonString(workerName))
             .replace("\"__THREADS_PERCENT__\"", "$threadsPercent")
             .replace("\"__THREAD_ARRAY__\"", threadArray)
         configFile.writeText(config)
         metaFile.writeText(metaKey)
         Log.i(TAG, "Config: written (pool=$poolUrl tls=$poolTls rig=$workerName threads=$threadsPercent%)")
         return configFile
+    }
+
+    /** JSON string literal, quotes included. */
+    private fun jsonString(value: String): String {
+        val sb = StringBuilder(value.length + 2)
+        sb.append('"')
+        for (c in value) {
+            when (c) {
+                '\\' -> sb.append("\\\\")
+                '"' -> sb.append("\\\"")
+                '\n' -> sb.append("\\n")
+                '\r' -> sb.append("\\r")
+                '\t' -> sb.append("\\t")
+                else -> if (c.code < 0x20) {
+                    sb.append("\\u%04x".format(c.code))
+                } else {
+                    sb.append(c)
+                }
+            }
+        }
+        sb.append('"')
+        return sb.toString()
     }
 
     private fun parseStatsLine(line: String) {

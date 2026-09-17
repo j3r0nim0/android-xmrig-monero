@@ -7,10 +7,21 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <uses-feature
         android:name="android.hardware.telephony"
         android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
 
     <application
         android:allowBackup="false"
@@ -23,10 +34,17 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="monero" />
             </intent-filter>
         </activity>
 
@@ -34,6 +52,17 @@
             android:name=".LogActivity"
             android:exported="false"
             android:label="XMRig log" />
+
+        <activity
+            android:name=".AboutActivity"
+            android:exported="false"
+            android:label="About" />
+
+        <activity
+            android:name=".ScanActivity"
+            android:exported="false"
+            android:label="Scan wallet"
+            android:screenOrientation="fullUser" />
 
         <service
             android:name=".MiningService"

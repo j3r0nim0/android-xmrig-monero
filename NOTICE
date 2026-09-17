@@ -31,4 +31,5 @@ Bundled third-party software
 
 The Android host in this repository does not modify XMRig source.
 The binary is cross-compiled with the Android NDK (TLS on). Recipe:
-docs/BUILD-XMRIG.md
+docs/BUILD-XMRIG.md. SHA-256 of the shipped `libxmrig.so`:
+1f86e6fe9272b84f0fc5365b4e143ad33269c594e7c28cc730cc49929d5059a8

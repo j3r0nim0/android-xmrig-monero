@@ -5,7 +5,7 @@ Paste a wallet, start mining.
 
 ## Status
 
-v0.1 — ARM64 Android 8+. Experimental. **Use at your own risk.**  
+v0.2 — ARM64 Android 8+. Experimental. **Use at your own risk.**  
 RandomX will heat the phone and can shorten battery life. There is **no warranty**.
 
 - Package: `io.github.j3r0nim0.anvil`
@@ -13,9 +13,10 @@ RandomX will heat the phone and can shorten battery life. There is **no warranty
 - Donate: **0%** while on MoneroOcean
 - Payouts go to **your** wallet at [moneroocean.stream](https://moneroocean.stream). This app takes no cut.
 - Charging-only is **on** by default. CPU pause default **65°C**. Battery pause **40°C**.
-- Threads default **50%**.
-- First start **benchmarks** several algorithms (a few minutes, phone gets warm). Later starts at the same thread % skip it.
-- **Pause** keeps XMRig running (no re-benchmark). **Stop** (long-press) kills the process; algo-perf stays on disk.
+- Optional **Wi-Fi only**, **quiet hours**, 60s no-internet grace.
+- Threads default **50%**. First start **benchmarks** several algorithms (a few minutes). Later starts at the same thread % skip it.
+- **Pause** keeps XMRig running (no re-benchmark). **Stop** (long-press, or the notification) kills the process; algo-perf stays on disk.
+- Verify on MoneroOcean, copy worker id (`AX-…`), paste / scan wallet QR.
 
 ## Requirements
 
