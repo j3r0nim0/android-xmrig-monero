@@ -16,6 +16,8 @@ object MiningState {
     @Volatile var pauseReason: String = ""
     @Volatile var userPaused: Boolean = false
     @Volatile var lastLogLine: String = ""
+    /** Sticky until the pool connects. Speed lines must not clear this. */
+    @Volatile var poolError: String = ""
     /** Rolling XMRig stdout shown on the Mine tab. */
     @Volatile var logText: String = ""
 
@@ -41,6 +43,7 @@ object MiningState {
         pauseReason = ""
         userPaused = false
         lastLogLine = ""
+        poolError = ""
         logText = ""
         noInternetSecondsLeft = -1
         batteryTempC = 0

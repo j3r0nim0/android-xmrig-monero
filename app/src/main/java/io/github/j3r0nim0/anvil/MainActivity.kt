@@ -668,7 +668,11 @@ class MainActivity : AppCompatActivity() {
         accepted.text = MiningState.accepted.toString()
         rejected.text = MiningState.rejected.toString()
 
-        hashrate.text = MiningState.formatHs(MiningState.hashrate10s)
+        hashrate.text = if (MiningState.hashrate10s > 0) {
+            MiningState.formatHs(MiningState.hashrate10s)
+        } else {
+            "0 H/s"
+        }
         temp.text = if (MiningState.tempCelsius > 0) {
             val src = if (MiningState.tempSource == "battery") "bat" else "cpu"
             "${MiningState.tempCelsius}°C $src"
@@ -677,10 +681,10 @@ class MainActivity : AppCompatActivity() {
         }
         status.text = when {
             pause.isNotEmpty() -> pause
+            MiningState.poolError.isNotEmpty() && MiningState.pool.isEmpty() ->
+                MiningState.poolError
             MiningState.pool.isNotEmpty() ->
                 "${MiningState.pool}  ·  ${MiningState.accepted} accepted  ·  ${MiningState.rejected} rejected  ·  ${formatUptime(MiningState.uptimeSecs)}"
-            MiningState.lastLogLine.contains("DNS error", ignoreCase = true) ->
-                "Can't reach pool (DNS). Check network / VPN settings."
             else -> "Starting… first run may take a few minutes"
         }
         val live = MiningState.logText.ifBlank { MiningState.lastLogLine }

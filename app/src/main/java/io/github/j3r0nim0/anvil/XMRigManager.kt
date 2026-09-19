@@ -50,6 +50,7 @@ class XMRigManager(
     private val rePool = Regex("""(?:use pool|new job from)\s+(\S+)""")
     private val reAccepted = Regex("""accepted\s+\((\d+)/(\d+)\)""")
     private val reDisconnect = Regex("""net\s+.*(disconnect|offline|read error)""", RegexOption.IGNORE_CASE)
+    private val reDns = Regex("""DNS error""", RegexOption.IGNORE_CASE)
 
     private val debugLogFile by lazy { File(context.filesDir, DEBUG_LOG_NAME) }
     private val logFmt = SimpleDateFormat("MM-dd HH:mm:ss", Locale.US)
@@ -78,6 +79,7 @@ class XMRigManager(
         statsHashrate10s = 0.0
         statsHashrate60s = 0.0
         connectionStartMs = 0L
+        MiningState.poolError = ""
 
         val binary = getBinary()
         val config = writeConfig(wallet, threadsPercent)
@@ -261,6 +263,15 @@ class XMRigManager(
                 connectionStartMs = System.currentTimeMillis()
             }
             statsPool = newPool
+            MiningState.poolError = ""
+            changed = true
+        }
+
+        if (reDns.containsMatchIn(line)) {
+            statsPool = ""
+            connectionStartMs = 0L
+            MiningState.poolError =
+                "Can't reach pool (DNS). Check network / VPN."
             changed = true
         }
 
