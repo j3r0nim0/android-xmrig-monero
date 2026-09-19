@@ -26,17 +26,17 @@ RandomX will heat the phone and can shorten battery life. There is **no warranty
 
 ## Install
 
-[GitHub Releases](https://github.com/j3r0nim0/android-xmrig-monero/releases) → download **Anvil-0.1.0.apk** → install. You do **not** compile.
+[GitHub Releases](https://github.com/j3r0nim0/android-xmrig-monero/releases) → download **Anvil-0.2.0.apk** → install. You do **not** compile.
 
 Match this SHA-256 before you install:
 
 ```
-f806cb58e3b56547ed99dcf79d41f7d20cf1dbdc352c88f524b6e2a67222c8c2
+8c5b6c2c432505a69723c7b30c9314447fe00d5c86bf982578c81967c7443dbe
 ```
 
 ```
-shasum -a 256 Anvil-0.1.0.apk   # macOS
-sha256sum Anvil-0.1.0.apk      # Linux
+shasum -a 256 Anvil-0.2.0.apk   # macOS
+sha256sum Anvil-0.2.0.apk      # Linux
 ```
 
 For auto-updates, add this repo in [Obtainium](https://github.com/ImranR98/Obtainium) (or tap the badge on a phone that has it):
